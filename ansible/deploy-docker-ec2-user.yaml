@@ -72,7 +72,20 @@
       ansible.builtin.copy:
         src: "{{local_docker_compose_file}}"
         dest: /home/ec2-user/docker-compose.yaml
+    - name: Docker login
+      docker_login: 
+        username: "{{docker_user}}"
+        password: "{{docker_password}}"
     - name: Start container from compose
       community.docker.docker_compose: 
         project_src: /home/ec2-user
            
+# - hosts: all
+#   become: yes
+#   tasks:
+#     - name: Restore Jenkins from S3
+#       s3:
+#         key: jenkins-backup.tar.gz
+#         bucket: my-jenkins-backups
+#         destination: /var/lib/jenkins/backups/jenkins-backup.tar.gz
+#         force: yes

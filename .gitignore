@@ -478,3 +478,6 @@ war/yarn-error.log
 
 
 creadensials/
+
+project-vars
+ansible/project-vars
