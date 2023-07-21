@@ -1,0 +1,12 @@
+env                  = "test"
+instance_type        = "t2.micro"
+region               = "us-west-1"
+vpc_cidr             = "10.0.0.0/16"
+private_subnet_cidrs = []
+public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+availability_zone    = ["us-west-1b", "us-west-1c"]
+ssh_key              = "/home/dev/.ssh/id_rsa.pub"
+ssh_key_private      = "/home/dev/.ssh/id_rsa"
+my_ip                = "188.191.238.26/32" - your hone ip
+key_name             = "terraform-ansible"
+count_ec2_instance   = 1
