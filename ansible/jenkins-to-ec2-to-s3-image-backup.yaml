@@ -1,0 +1,98 @@
+---
+
+- name: Wait for ssh connection
+  hosts: all
+  gather_facts: False
+  tasks: 
+    - name: Ensure ssh port open
+      ansible.builtin.wait_for:
+        port: 22
+        delay: 10
+        timeout: 160
+        search_regex: OpenSSH
+        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+      vars:
+        ansible_connection: local
+
+- name: Install python3, docker, docker-compose
+  hosts: all
+  become: yes
+  
+  gather_facts: False
+  tasks:
+    - name: Install python3, python3-pip and docker
+      ansible.builtin.yum: 
+        name: 
+          - python3
+          - docker
+          - python3-pip
+        update_cache: yes
+        state: present
+    - name: Install Docker-compose
+      ansible.builtin.get_url: 
+        url: https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-linux-{{lookup('pipe', 'uname -m')}}
+        dest: /usr/local/bin/docker-compose
+        mode: +x
+    - name: Start docker daemon
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+    - name: Install docker python module
+      ansible.builtin.pip:
+        name: 
+          - docker
+          - docker-compose
+          - botocore
+          - boto3
+        extra_args: "--ignore-installed"   
+
+
+- name: Add ec2-user to docker group
+  hosts: all
+  become: yes
+  tasks: 
+    - name: Add ec2-user to docker group
+      ansible.builtin.user: 
+        name: ec2-user
+        groups: docker
+        append: yes
+    - name: Restore Files
+      shell: mkdir -p /var/jenkins_home
+    - name: add permition to jenkins folder
+      ansible.builtin.file:
+        path: /var/jenkins_home
+        owner: ec2-user
+        group: ec2-user
+        mode: 0755
+    - name: Reconnect to server session
+      meta: reset_connection
+
+- name: Start docker containers
+  hosts: all
+  vars_files:
+    - project-vars
+  tasks:
+    - name: Copy docker compose
+      ansible.builtin.copy:
+        src: "{{local_docker_compose_file}}"
+        dest: /home/ec2-user/docker-compose.yaml
+    - name: Download file from S3
+      aws_s3:
+        aws_access_key_id: "{{ AWS_ACCESS_KEY_ID }}"
+        aws_secret_access_key: "{{ AWS_SECRET_ACCESS_KEY }}"
+        bucket: "{{ BACKET_NAME }}"
+        object: /jenkins/jenkins_home.tar.gz
+        mode: get
+        dest: /tmp/jenkins_home.tar.gz
+    - name: Restore Files
+      shell: sudo tar -xzvf /tmp/jenkins_home.tar.gz -C / && rm -r /tmp/jenkins_home.tar.gz
+    - name: Start container from compose
+      community.docker.docker_compose: 
+        project_src: /home/ec2-user
+    - name: Execute command in Docker container
+      shell: docker exec -u root jenkins cat /var/jenkins_home/secrets/initialAdminPassword 
+      register: output
+
+    - name: Display output of Docker command
+      debug:
+        msg: "{{ output.stdout }}"

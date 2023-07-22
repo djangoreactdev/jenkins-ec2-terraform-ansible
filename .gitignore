@@ -481,3 +481,5 @@ creadensials/
 
 project-vars
 ansible/project-vars
+command.txt
+ansible/project-vars

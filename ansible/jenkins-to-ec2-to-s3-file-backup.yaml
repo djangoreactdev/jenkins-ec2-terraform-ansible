@@ -42,6 +42,8 @@
         name: 
           - docker
           - docker-compose
+          - botocore
+          - boto3
         extra_args: "--ignore-installed"   
 
 
@@ -54,6 +56,8 @@
         name: ec2-user
         groups: docker
         append: yes
+    - name: Restore Files
+      shell: mkdir -p /var/jenkins_home
     - name: add permition to jenkins folder
       ansible.builtin.file:
         path: /var/jenkins_home
@@ -72,20 +76,23 @@
       ansible.builtin.copy:
         src: "{{local_docker_compose_file}}"
         dest: /home/ec2-user/docker-compose.yaml
-    - name: Docker login
-      docker_login: 
-        username: "{{docker_user}}"
-        password: "{{docker_password}}"
+    - name: Download file from S3
+      aws_s3:
+        aws_access_key_id: "{{ AWS_ACCESS_KEY_ID }}"
+        aws_secret_access_key: "{{ AWS_SECRET_ACCESS_KEY }}"
+        bucket: "{{ BACKET_NAME }}"
+        object: /jenkins/jenkins_home.tar.gz
+        mode: get
+        dest: /tmp/jenkins_home.tar.gz
+    - name: Restore Files
+      shell: sudo tar -xzvf /tmp/jenkins_home.tar.gz -C / && rm -r /tmp/jenkins_home.tar.gz
     - name: Start container from compose
       community.docker.docker_compose: 
         project_src: /home/ec2-user
-           
-# - hosts: all
-#   become: yes
-#   tasks:
-#     - name: Restore Jenkins from S3
-#       s3:
-#         key: jenkins-backup.tar.gz
-#         bucket: my-jenkins-backups
-#         destination: /var/lib/jenkins/backups/jenkins-backup.tar.gz
-#         force: yes
+    # - name: Execute command in Docker container
+    #   shell: docker exec -u root jenkins cat /var/jenkins_home/secrets/initialAdminPassword 
+    #   register: output
+
+    # - name: Display output of Docker command
+    #   debug:
+    #     msg: "{{ output.stdout }}"
