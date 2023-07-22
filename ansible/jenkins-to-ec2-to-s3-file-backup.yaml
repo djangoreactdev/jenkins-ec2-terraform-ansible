@@ -86,6 +86,10 @@
         dest: /tmp/jenkins_home.tar.gz
     - name: Restore Files
       shell: sudo tar -xzvf /tmp/jenkins_home.tar.gz -C / && rm -r /tmp/jenkins_home.tar.gz
+    - name: Docker login
+      docker_login: 
+        username: "{{docker_user}}"
+        password: "{{docker_password}}"
     - name: Start container from compose
       community.docker.docker_compose: 
         project_src: /home/ec2-user

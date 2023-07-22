@@ -31,9 +31,9 @@ resource "aws_instance" "server_jenkins" {
 
 resource "null_resource" "configure_server" {
   count = var.count_ec2_instance
-  # triggers = {
-  #   trigger = aws_instance.server_jenkins[count.index].public_ip
-  # }
+  triggers = {
+    trigger = aws_instance.server_jenkins[count.index].public_ip
+  }
 
   provisioner "local-exec" {
     working_dir = "../ansible"
