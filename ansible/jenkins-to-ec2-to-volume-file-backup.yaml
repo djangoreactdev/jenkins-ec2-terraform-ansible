@@ -64,6 +64,8 @@
         owner: ec2-user
         group: ec2-user
         mode: 0755
+    - name: unmount volume
+      shell: umount /mnt/sdf
     - name: attach volume
       shell: mount /dev/xvdf /mnt/sdf
     - name: Reconnect to server session

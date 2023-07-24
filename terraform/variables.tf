@@ -11,3 +11,4 @@ variable "my_ip" {}
 variable "key_name" {}
 variable "availability_zone" {}
 variable "count_ec2_instance" {}
+variable "file_ansible_playbook" {}

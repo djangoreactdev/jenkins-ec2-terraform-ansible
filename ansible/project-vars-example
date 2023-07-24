@@ -1,0 +1,14 @@
+version: 1.0.0 
+location: .
+linux_name: node
+user_home_dir: /home/{{linux_name}}
+
+# local_docker_compose_file: ./docker-compose.yaml
+local_docker_compose_file: ./docker-compose-volume.yaml
+
+docker_password: pass
+docker_user: user
+
+AWS_ACCESS_KEY_ID: ww
+AWS_SECRET_ACCESS_KEY: ww
+BACKET_NAME: ww
