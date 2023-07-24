@@ -37,32 +37,32 @@ resource "null_resource" "configure_server" {
 
   provisioner "local-exec" {
     working_dir = "../ansible"
-    command     = "pwd && ansible-playbook --inventory ${aws_instance.server_jenkins[count.index].public_ip}, --private-key ${var.ssh_key_private} --user ec2-user jenkins-to-ec2-to-s3-file-backup.yaml"
+    command     = "pwd && ansible-playbook --inventory ${aws_instance.server_jenkins[count.index].public_ip}, --private-key ${var.ssh_key_private} --user ec2-user jenkins-to-ec2-to-volume-file-backup.yaml"
   }
 }
 
 # ==================================== Add from snapshot ===============================================
 
-# resource "aws_volume_attachment" "jenkins_volume_attachment" {
-#   device_name = "/dev/xvdf"
-#   volume_id   = data.aws_ebs_volume.jenkins_volume.id
-#   instance_id = aws_instance.server_jenkins[0].id
-# }
+resource "aws_volume_attachment" "jenkins_volume_attachment" {
+  device_name = "/dev/sdf"
+  volume_id   = data.aws_ebs_volume.jenkins_volume.id
+  instance_id = aws_instance.server_jenkins[0].id
+}
 
 
-# data "aws_ebs_volume" "jenkins_volume" {
-#   most_recent = true
+data "aws_ebs_volume" "jenkins_volume" {
+  most_recent = true
 
-#   filter {
-#     name   = "volume-type"
-#     values = ["gp2"]
-#   }
+  filter {
+    name   = "volume-type"
+    values = ["gp2"]
+  }
 
-#   filter {
-#     name   = "tag:Name"
-#     values = ["jenkins"]
-#   }
-# }
+  filter {
+    name   = "tag:Name"
+    values = ["jenkins"]
+  }
+}
 
 
 # data "aws_ebs_volume" "prod_volume" {

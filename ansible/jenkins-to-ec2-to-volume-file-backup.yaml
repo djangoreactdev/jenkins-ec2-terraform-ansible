@@ -56,14 +56,16 @@
         name: ec2-user
         groups: docker
         append: yes
-    - name: Restore Files
-      shell: mkdir -p /var/jenkins_home
+    - name: create moute folder
+      shell: mkdir -p /mnt/sdf
     - name: add permition to jenkins folder
       ansible.builtin.file:
-        path: /var/jenkins_home
+        path: /mnt/sdf
         owner: ec2-user
         group: ec2-user
         mode: 0755
+    - name: attach volume
+      shell: mount /dev/xvdf /mnt/sdf
     - name: Reconnect to server session
       meta: reset_connection
 
@@ -76,23 +78,23 @@
       ansible.builtin.copy:
         src: "{{local_docker_compose_file}}"
         dest: /home/ec2-user/docker-compose.yaml
-    - name: Download file from S3
-      aws_s3:
-        aws_access_key_id: "{{ AWS_ACCESS_KEY_ID }}"
-        aws_secret_access_key: "{{ AWS_SECRET_ACCESS_KEY }}"
-        bucket: "{{ BACKET_NAME }}"
-        object: /jenkins/jenkins_home.tar.gz
-        mode: get
-        dest: /tmp/jenkins_home.tar.gz
-    - name: Restore Files
-      shell: sudo tar -xzvf /tmp/jenkins_home.tar.gz -C / && rm -r /tmp/jenkins_home.tar.gz
+    # - name: Download file from S3
+    #   aws_s3:
+    #     aws_access_key_id: "{{ AWS_ACCESS_KEY_ID }}"
+    #     aws_secret_access_key: "{{ AWS_SECRET_ACCESS_KEY }}"
+    #     bucket: "{{ BACKET_NAME }}"
+    #     object: /jenkins/jenkins_home.tar.gz
+    #     mode: get
+    #     dest: /tmp/jenkins_home.tar.gz
+    # - name: Restore Files
+    #   shell: sudo tar -xzvf /tmp/jenkins_home.tar.gz -C / && rm -r /tmp/jenkins_home.tar.gz
     - name: Start container from compose
       community.docker.docker_compose: 
         project_src: /home/ec2-user
-    - name: Execute command in Docker container
-      shell: docker exec -u root jenkins cat /var/jenkins_home/secrets/initialAdminPassword 
-      register: output
+    # - name: Execute command in Docker container
+    #   shell: docker exec -u root jenkins cat /var/jenkins_home/secrets/initialAdminPassword 
+    #   register: output
 
-    - name: Display output of Docker command
-      debug:
-        msg: "{{ output.stdout }}"
+    # - name: Display output of Docker command
+    #   debug:
+    #     msg: "{{ output.stdout }}"
